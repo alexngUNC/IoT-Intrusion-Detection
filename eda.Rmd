@@ -1,0 +1,95 @@
+---
+title: "EDA for IoT Intrusion Detection"
+output: html_notebook
+---
+
+### Data summary
+
+```{r}
+library(dplyr)
+
+# cleans up old stuff in R
+rm(list=ls())
+
+# read in the data
+data = read.csv("RT_IOT2022.csv")
+
+# remove index column
+df = select(data, -X)
+```
+
+``` {r}
+# summarize the data
+head(df)
+#names(df)
+#dim(df)
+#glimpse(df)
+#sapply(df, class)
+#summary(df)
+
+# Checking for missing data
+clean <- ifelse(complete.cases(df)==TRUE, 1, 0)
+paste("There are", dim(df)[1]-sum(clean),
+      "rows with missing data.")
+```
+
+``` {r}
+sapply(df, class)
+```
+## Relationships between variables
+### Correlation
+``` {r}
+library(ggcorrplot)
+
+# Select only numeric or integer columns
+num <- df %>%
+  select_if(function(col) is.numeric(col) || is.integer(col))
+```
+
+``` {r}
+# Load necessary libraries
+library(dplyr)
+library(GGally)
+
+#num = num[,1:20]
+num_columns <- ncol(num)
+
+# Specify the number of variables to include in each correlogram
+num_variables_per_correlogram <- 10
+
+# ggplot version is good when number of variables is like 5, also includes scatterplots
+# Loop through the columns and create correlograms
+# for (i in seq(1, num_columns - 1, by = num_variables_per_correlogram)) {
+#   # Select the columns for the current correlogram
+#   columns_to_include <- c(i:(i + num_variables_per_correlogram - 1), num_columns)
+#   
+#   # Subset the data frame with selected columns
+#   subset_df <- num[, columns_to_include]
+#   
+#   # Create the correlogram
+#   gg.out <- ggpairs(subset_df, lower = list(continuous = "points"), diag = list(continuous = "barDiag"))
+#   print(gg.out)
+# }
+```
+``` {r}
+# ggcorplot version is much faster, doesn't include scatterplots
+# Loop through the columns and create correlograms
+for (i in seq(1, num_columns - 1, by = num_variables_per_correlogram)) {
+  # Select the columns for the current correlogram
+  columns_to_include <- c(i:(i + num_variables_per_correlogram - 1), num_columns)
+  
+  # Subset the data frame with selected columns
+  subset_df <- num[, columns_to_include]
+  
+  c2 = cor(subset_df)
+  c2 <- ggcorrplot(c2,
+                 type = "lower",
+                 lab = TRUE,
+                 lab_size = 3,
+                 method = "circle",
+                 colors = c("tomato2", "white", "springgreen3"),
+                 title = "Correlogram",
+                 ggtheme = theme_bw)
+  print(c2)
+}
+```
