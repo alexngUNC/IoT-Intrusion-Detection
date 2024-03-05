@@ -34,62 +34,60 @@ paste("There are", dim(df)[1]-sum(clean),
 ```
 
 ``` {r}
-sapply(df, class)
+table(sapply(df, class))
 ```
 ## Relationships between variables
 ### Correlation
 ``` {r}
 library(ggcorrplot)
+library(dplyr)
+library(GGally)
 
 # Select only numeric or integer columns
 num <- df %>%
   select_if(function(col) is.numeric(col) || is.integer(col))
-```
-
+``` 
 ``` {r}
-# Load necessary libraries
-library(dplyr)
-library(GGally)
-
-#num = num[,1:20]
 num_columns <- ncol(num)
 
 # Specify the number of variables to include in each correlogram
 num_variables_per_correlogram <- 10
 
-# ggplot version is good when number of variables is like 5, also includes scatterplots
-# Loop through the columns and create correlograms
-# for (i in seq(1, num_columns - 1, by = num_variables_per_correlogram)) {
-#   # Select the columns for the current correlogram
-#   columns_to_include <- c(i:(i + num_variables_per_correlogram - 1), num_columns)
-#   
-#   # Subset the data frame with selected columns
-#   subset_df <- num[, columns_to_include]
-#   
-#   # Create the correlogram
-#   gg.out <- ggpairs(subset_df, lower = list(continuous = "points"), diag = list(continuous = "barDiag"))
-#   print(gg.out)
-# }
-```
-``` {r}
-# ggcorplot version is much faster, doesn't include scatterplots
-# Loop through the columns and create correlograms
-for (i in seq(1, num_columns - 1, by = num_variables_per_correlogram)) {
-  # Select the columns for the current correlogram
-  columns_to_include <- c(i:(i + num_variables_per_correlogram - 1), num_columns)
-  
-  # Subset the data frame with selected columns
-  subset_df <- num[, columns_to_include]
-  
-  c2 = cor(subset_df)
-  c2 <- ggcorrplot(c2,
-                 type = "lower",
-                 lab = TRUE,
-                 lab_size = 3,
-                 method = "circle",
-                 colors = c("tomato2", "white", "springgreen3"),
-                 title = "Correlogram",
-                 ggtheme = theme_bw)
-  print(c2)
+# ggcorplot version is MUCH faster, doesn't include scatterplots
+# only use ggpairs version for like 5 variables
+correlogram.loop <- function(df, num_variables_per_correlogram, gg.cor=TRUE) {
+  num_columns = ncol(df)
+  for (i in seq(1, num_columns - 1, by = num_variables_per_correlogram)) {
+    # Select the columns for the current correlogram
+    columns_to_include <- c(i:(i + num_variables_per_correlogram - 1))
+    
+    # Subset the data frame with selected columns
+    subset_df <- df[, columns_to_include]
+    
+    if (gg.cor) {
+      c2 = cor(subset_df)
+      c2 <- ggcorrplot(c2,
+                     type = "lower",
+                     lab = TRUE,
+                     lab_size = 3,
+                     method = "circle",
+                     colors = c("tomato2", "white", "springgreen3"),
+                     title = "Correlogram",
+                     ggtheme = theme_bw)
+      print(c2)
+    } else {
+      gg.out <- ggpairs(subset_df, lower = list(continuous = "points"), diag = list(continuous = "barDiag"))
+      print(gg.out)
+    }
+  }
 }
 ```
+#### ggcor correlograms
+``` {r}
+correlogram.loop(num, 10)
+```
+#### ggpairs correlograms
+``` {r}
+correlogram.loop(num[,1:20], 5, gg.cor=FALSE)
+```
+
