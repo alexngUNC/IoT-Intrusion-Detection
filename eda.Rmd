@@ -25,7 +25,7 @@ head(df)
 #dim(df)
 #glimpse(df)
 #sapply(df, class)
-#summary(df)
+knitr::kable(summary(df))
 
 # Checking for missing data
 clean <- ifelse(complete.cases(df)==TRUE, 1, 0)
@@ -36,6 +36,41 @@ paste("There are", dim(df)[1]-sum(clean),
 ``` {r}
 table(sapply(df, class))
 ```
+## Feature distributions
+``` {r}
+library(ggplot2)
+
+# rename attack types
+df$Attack_type <- recode(data$Attack_type,
+                         MQTT_Publish="MQTT",
+                         ARP_poisioning="ARP", 
+                         DDOS_Slowloris="DDOS",
+                         DOS_SYN_Hping="DOS",
+                         Metasploit_Brute_Force_SSH="SSH",
+                         NMAP_FIN_SCAN="FIN_SCAN",
+                         NMAP_OS_DETECTION="OS_Detect",
+                         NMAP_TCP_scan="TCP_SCAN",
+                         NMAP_UDP_SCAN="UDP_SCAN",
+                         NMAP_XMAS_TREE_SCAN="XMAS_SCAN")
+
+
+
+
+# Create the bar chart with counts and percentage (rounded to 2 decimals) above the bars
+attack_type_counts <- ggplot(df, aes(x = Attack_type)) +
+  geom_bar(fill = "skyblue", color = "black") +
+  geom_text(stat = "count", aes(label = paste0(after_stat(count))), 
+            vjust = -0.5, size = 3) +  # Position count text
+  geom_text(stat = "count", aes(label = paste0(" (", scales::percent(round(after_stat(count)/sum(after_stat(count)), 4)), ")")), 
+            vjust = -2, size = 3) +  # Position percentage text
+  labs(title = "Count of Observations by Attack Type", x = "Attack Type", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 100000)
+
+print(attack_type_counts)
+```
+
 ## Relationships between variables
 ### Correlation
 ``` {r}
@@ -88,6 +123,6 @@ correlogram.loop(num, 10)
 ```
 #### ggpairs correlograms
 ``` {r}
-correlogram.loop(num[,1:20], 5, gg.cor=FALSE)
+correlogram.loop(num[,6:20], 5, gg.cor=FALSE)
 ```
 
