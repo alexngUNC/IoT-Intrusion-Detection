@@ -22,10 +22,11 @@ df = select(data, -X)
 # summarize the data
 head(df)
 #names(df)
-#dim(df)
+paste("There are", dim(df)[1],
+      "observations and ", dim(df)[2],
+      "features.")
 #glimpse(df)
 #sapply(df, class)
-knitr::kable(summary(df))
 
 # Checking for missing data
 clean <- ifelse(complete.cases(df)==TRUE, 1, 0)
